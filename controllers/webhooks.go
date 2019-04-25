@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"github.com/Sirupsen/logrus"
+	"hooks-processor/parser"
 	"io/ioutil"
 	"net/http"
 )
@@ -18,6 +19,7 @@ func WebhookRouterHandler(w http.ResponseWriter, r *http.Request) {
 		results = append(results, string(body))
 
 		logrus.Info(results)
+		parser.ParseWebhook(results)
 
 		fmt.Fprint(w, "POST done")
 	} else {
