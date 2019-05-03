@@ -17,6 +17,14 @@ type Message struct {
 	Payload       parser.Payload
 }
 
+type Services struct {
+	List []struct {
+		URL     string   `mapstructure:"url"`
+		Service string   `mapstructure:"service"`
+		Actions []string `mapstructure:"actions"`
+	} `mapstructure:"list"`
+}
+
 func SendMessage(message Message, url string) {
 	fmt.Println("URL:>", url)
 	json, err := json2.Marshal(message)

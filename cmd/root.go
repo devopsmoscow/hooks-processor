@@ -16,14 +16,14 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/Sirupsen/logrus"
 	"os"
 
-	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-var cfgFile, redisLink string
+var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -39,44 +39,43 @@ var rootCmd = &cobra.Command{
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
+		logrus.Error(err)
 		os.Exit(1)
 	}
 }
 
 func init() {
 	cobra.OnInitialize(initConfig)
-
+	logrus.Info("Root start")
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.hooks.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is ./.config.yaml)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	rootCmd.PersistentFlags().StringVar(&redisLink, "redis-url", "redis", "Redis instance URL")
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
+	logrus.Info("Checking config...")
+
+	viper.SetDefault("port", 9000)
+
 	if cfgFile != "" {
 		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)
 	} else {
-		// Find home directory.
-		home, err := homedir.Dir()
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
 
 		// Search config in home directory with name ".hooks" (without extension).
-		viper.AddConfigPath(home)
-		viper.SetConfigName(".hooks")
+		viper.AddConfigPath(".")
+		viper.SetConfigName(".config")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
+
+	viper.WatchConfig()
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
