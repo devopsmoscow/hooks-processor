@@ -5,8 +5,8 @@ import (
 	json2 "encoding/json"
 	"fmt"
 	"github.com/Sirupsen/logrus"
+	"github.com/spf13/viper"
 	"hooks-processor/parser"
-	"io/ioutil"
 	"net/http"
 )
 
@@ -25,26 +25,64 @@ type Services struct {
 	} `mapstructure:"list"`
 }
 
-func SendMessage(message Message, url string) {
-	fmt.Println("URL:>", url)
+func SendMessage(message Message) {
+	url, err := getUrl(message.Action)
 	json, err := json2.Marshal(message)
 	var jsonStr = []byte(json)
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
 	if err != nil {
 		logrus.Error(err.Error())
-	}
-	req.Header.Set("X-Custom-Header", "ololosh")
-	req.Header.Set("Content-Type", "application/json")
+	} else {
+		req.Header.Set("X-Custom-Header", "ololosh")
+		req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		panic(err)
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			panic(err)
+		} else {
+			defer resp.Body.Close()
+		}
 	}
-	defer resp.Body.Close()
+}
 
-	fmt.Println("response Status:", resp.Status)
-	fmt.Println("response Headers:", resp.Header)
-	body, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println("response Body:", string(body))
+type errorString struct {
+	s string
+}
+
+func (e *errorString) Error() string {
+	return e.s
+}
+
+func getUrl(action string) (string, error) {
+	var url string
+	for key, value := range viper.Get("services").(map[string]interface{}) {
+		if key == "list" {
+			for _, service := range value.([]interface{}) {
+				var matchFlag bool
+				var tempUrl string
+				for servKey, servValue := range service.(map[interface{}]interface{}) {
+					if servKey == "actions" {
+						for _, actionFromConfig := range servValue.([]interface{}) {
+							if actionFromConfig == action {
+								matchFlag = true
+							}
+						}
+					}
+					if servKey == "url" {
+						tempUrl = fmt.Sprintf("%v", servValue)
+					}
+				}
+				if matchFlag == true {
+					url = tempUrl
+				}
+			}
+		}
+	}
+	if url == "" {
+		logrus.Error("Action or URL not found")
+		return "", &errorString{"Action or URL not found"}
+	}
+	logrus.Info("Integration URL is ", url)
+	return url, nil
 }
