@@ -39,19 +39,16 @@ func WebhookRouterHandler(w http.ResponseWriter, r *http.Request) {
 				message.Action = paramValue.(string)
 			}
 		}
-		logrus.Info(message.Action)
-		var url string
-		switch message.Action {
-		case "new_meetup":
-			url = "https://webhook.site/65c30cd6-674f-4390-a20f-7ed5ea4961b2"
-		}
 		logrus.Info("Requesting integration")
-		requests.SendMessage(message, url)
+		requests.SendMessage(message)
 		var response Response
 		response.fulfillmentText = "Test Response"
 		js, err := json.Marshal(response)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(js)
+		_, wErr := w.Write(js)
+		if wErr != nil {
+			logrus.Error(wErr.Error())
+		}
 	} else {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}
