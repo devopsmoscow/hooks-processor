@@ -40,9 +40,13 @@ Example:
           url: http://telegram-svc
 
 The following configuration properties are understood:
-**port** - TCP port application will be listening for
-**services** - list of structures which are defining URLs for downstream services
-**services.list.service** - downstream service name
-**services.list.url** - downstream service URL
-**services.list.actions** - list of actions to be handled by particular downstream service
 
+**port** - TCP port application will be listening for
+
+**services** - list of structures which are defining URLs for downstream services
+
+**services.list.service** - downstream service name
+
+**services.list.url** - downstream service URL
+
+**services.list.actions** - list of actions to be handled by particular downstream service
