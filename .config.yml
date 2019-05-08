@@ -1,0 +1,12 @@
+services:
+  list:
+    - service: meetup
+      actions:
+        - new_meetup
+        - get_meetup
+      url: https://webhook.site/65c30cd6-674f-4390-a20f-7ed5ea4961b2
+    - service: telegram
+      actions:
+        - get_members
+        - get_admins
+      url: https://webhook.site/65c30cd6-674f-4390-a20f-7ed5ea4961b2
